@@ -1,5 +1,8 @@
 package com.icemetalpunk.gametheory.guis;
 
+import java.awt.Container;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,10 +21,29 @@ public class Game extends JFrame implements GTEventHandler {
 	private int currentRoom;
 	private Room thisRoom;
 	private final List<Room> roomList = new ArrayList<Room>();
+	private final Container oContentPane;
 
 	public Game() {
 		this.currentRoom = -1;
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.oContentPane = this.getContentPane();
+		this.addComponentListener(new ComponentAdapter() {
+			public void componentResized(ComponentEvent e) {
+				Game source = (Game) e.getSource();
+				source.getContentPane().setSize(source.getSize());
+				source.triggerResize();
+			}
+		});
+	}
+
+	public void triggerResize() {
+		if (this.thisRoom != null) {
+			this.thisRoom.triggerResize(this.getWidth(), this.getHeight());
+		}
+	}
+
+	public void resetBackground() {
+		this.setContentPane(this.oContentPane);
 	}
 
 	public void run() {
@@ -43,6 +65,14 @@ public class Game extends JFrame implements GTEventHandler {
 			rm.load();
 			this.thisRoom = rm;
 		}
+	}
+
+	public Room getRoom(int n) {
+		return this.roomList.get(n);
+	}
+
+	public Room getCurrentRoom() {
+		return this.thisRoom;
 	}
 
 	public void gotoRoom(int n) throws ArrayIndexOutOfBoundsException {

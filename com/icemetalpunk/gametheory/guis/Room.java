@@ -1,10 +1,14 @@
 package com.icemetalpunk.gametheory.guis;
 
 import java.awt.Component;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.icemetalpunk.gametheory.events.GTGameEvent;
+import com.icemetalpunk.gametheory.events.GTResizeEvent;
 import com.icemetalpunk.gametheory.events.GTRoomEvent;
 import com.icemetalpunk.gametheory.events.GTStepEvent;
 import com.icemetalpunk.gametheory.events.GTStepHandler;
@@ -23,6 +27,8 @@ public class Room extends Component implements GTStepHandler {
 	private GTStepEvent stepEvent = null;
 	private GTRoomEvent.RoomStart startEvent = null;
 	private GTRoomEvent.RoomEnd endEvent = null;
+	private GTBackground background = null;
+	private GTResizeEvent resizeEvent = null;
 
 	public Room(int w, int h, String t, int s, Game g) {
 		this.width = w;
@@ -64,6 +70,51 @@ public class Room extends Component implements GTStepHandler {
 		this(DEFAULT_ROOM_WIDTH, DEFAULT_ROOM_HEIGHT, "", DEFAULT_ROOM_SPEED, null);
 	}
 
+	// Backgrounds
+	public void setBackground(String img) throws IOException {
+		if (this.background == null) {
+			this.background = new GTBackground(img);
+		} else {
+			this.background.setImage(img);
+			this.refreshBackground();
+		}
+	}
+
+	public void setBackground(URL img) throws IOException {
+		if (this.background == null) {
+			this.background = new GTBackground(img);
+		} else {
+			this.background.setImage(img);
+			this.refreshBackground();
+		}
+	}
+
+	public void setBackground(GTBackground img) {
+		this.background = img;
+		this.refreshBackground();
+	}
+
+	public void setBackground(BufferedImage img) throws IOException {
+		if (this.background == null) {
+			this.background = new GTBackground(img);
+		} else {
+			this.background.setImage(img);
+			this.refreshBackground();
+		}
+	}
+
+	private void refreshBackground() {
+		if (this.game != null) {
+			if (this.background != null) {
+				this.background.setSize(this.game.getSize());
+				this.game.setContentPane(this.background);
+			} else {
+				this.game.resetBackground();
+			}
+		}
+	}
+
+	// Other getters/setters
 	public int getSpeed() {
 		return this.speed;
 	}
@@ -72,6 +123,7 @@ public class Room extends Component implements GTStepHandler {
 		this.speed = s;
 	}
 
+	// Loading
 	public void load() throws NullPointerException {
 		if (this.game == null) {
 			throw new NullPointerException();
@@ -85,6 +137,9 @@ public class Room extends Component implements GTStepHandler {
 				obj.attachSprite(this.game);
 			}
 
+			if (this.background != null) {
+				this.game.setContentPane(this.background);
+			}
 			this.game.setSize(this.width, this.height);
 			this.game.setTitle(this.title);
 			this.game.setVisible(true);
@@ -96,6 +151,13 @@ public class Room extends Component implements GTStepHandler {
 		}
 	}
 
+	public void triggerResize(int w, int h) {
+		if (this.resizeEvent != null) {
+			this.resizeEvent.trigger(w, h);
+		}
+	}
+
+	// Unloading
 	public void unload() throws NullPointerException {
 		if (this.game == null) {
 			throw new NullPointerException();
@@ -105,6 +167,7 @@ public class Room extends Component implements GTStepHandler {
 				this.endEvent.trigger();
 			}
 
+			this.game.resetBackground();
 			for (GTObject obj : this.objects) {
 				obj.detachSprite(this.game);
 			}
@@ -115,6 +178,7 @@ public class Room extends Component implements GTStepHandler {
 		}
 	}
 
+	// Event handlers
 	public void attachListener(GTGameEvent event) {
 		event.setSource(this);
 		event.setWindow(this.game);
@@ -137,6 +201,12 @@ public class Room extends Component implements GTStepHandler {
 		event.setSource(this);
 		event.setWindow(this.game);
 		this.endEvent = event;
+	}
+
+	public void attachListener(GTResizeEvent event) {
+		event.setSource(this);
+		event.setWindow(this.game);
+		this.resizeEvent = event;
 	}
 
 	public void setGame(Game g) {

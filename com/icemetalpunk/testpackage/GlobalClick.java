@@ -13,26 +13,20 @@ public class GlobalClick extends GTMouseEvent {
 
 	@Override
 	public void mouseEntered(MouseEvent event) {
-		// TODO Auto-generated method stub
-
+		TestMain.game.getCurrentRoom().setBackground(TestMain.BG1);
 	}
 
 	@Override
 	public void mouseExited(MouseEvent event) {
-		// TODO Auto-generated method stub
-
+		TestMain.game.getCurrentRoom().setBackground(TestMain.BG2);
 	}
 
 	@Override
 	public void mousePressed(MouseEvent event) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent event) {
-		// TODO Auto-generated method stub
-
 	}
 
 }

@@ -6,13 +6,13 @@ import java.util.List;
 
 import javax.swing.ImageIcon;
 
-public class Sprite {
-	private final static List<Sprite> spriteList = new ArrayList<Sprite>();
+public class GTSprite {
+	private final static List<GTSprite> spriteList = new ArrayList<GTSprite>();
 
 	public final ImageIcon image;
 	public final int id;
 
-	private Sprite(ImageIcon i, int id) {
+	private GTSprite(ImageIcon i, int id) {
 		this.image = i;
 		this.id = id;
 	}
@@ -25,8 +25,8 @@ public class Sprite {
 		return this.image.getIconHeight();
 	}
 
-	public static Sprite load(URL res) {
-		Sprite spr = new Sprite(new ImageIcon(res), spriteList.size());
+	public static GTSprite load(URL res) {
+		GTSprite spr = new GTSprite(new ImageIcon(res), spriteList.size());
 		spriteList.add(spr);
 		return spr;
 	}

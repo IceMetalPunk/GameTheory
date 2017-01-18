@@ -8,13 +8,13 @@ import com.icemetalpunk.gametheory.events.GTStepHandler;
 import com.icemetalpunk.gametheory.events.objectevents.GTObjectEventHandler;
 import com.icemetalpunk.gametheory.events.objectevents.GTOutsideRoomEvent;
 import com.icemetalpunk.gametheory.guis.Game;
-import com.icemetalpunk.gametheory.sprites.Sprite;
+import com.icemetalpunk.gametheory.sprites.GTSprite;
 
 public abstract class GTObject implements GTStepHandler, GTObjectEventHandler {
 	private static AtomicLong idCounter = new AtomicLong();
 	public double x, y, hspeed, vspeed, gravity;
 	public final long id;
-	private Sprite sprite;
+	private GTSprite sprite;
 	private final JLabel spriteLabel;
 	public boolean visible;
 	private GTOutsideRoomEvent outsideRoomEvent;
@@ -46,7 +46,7 @@ public abstract class GTObject implements GTStepHandler, GTObjectEventHandler {
 		return String.valueOf(this.id);
 	}
 
-	public void setSprite(Sprite spr) {
+	public void setSprite(GTSprite spr) {
 		this.sprite = spr;
 		if (spr != null) {
 			this.spriteLabel.setIcon(spr.image);
@@ -56,7 +56,7 @@ public abstract class GTObject implements GTStepHandler, GTObjectEventHandler {
 		}
 	}
 
-	public Sprite getSprite() {
+	public GTSprite getSprite() {
 		return this.sprite;
 	}
 
