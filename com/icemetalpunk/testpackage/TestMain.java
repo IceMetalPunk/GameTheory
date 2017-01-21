@@ -1,5 +1,8 @@
 /* TODO:
  * 
+ * Restructure event handling with Visitor pattern
+ * --> and create GTTriggeredEvent superclass to cover simple triggered events
+ * 
  * Audio
  * More events
  * Room properties such as background color, background image, etc.
@@ -38,11 +41,11 @@ public class TestMain {
 			System.err.println("ERROR: Could not load background.");
 		}
 
-		room1.attachListener(new GlobalClick());
-		room2.attachListener(new MyStepEvent());
-		room2.attachListener(new MyRoomStartEvent());
-		room2.attachListener(new MyRoomEndEvent());
-		room2.attachListener(new MyResizer());
+		room1.attach(new GlobalClick());
+		room2.attach(new MyStepEvent());
+		room2.attach(new MyRoomStartEvent());
+		room2.attach(new MyRoomEndEvent());
+		room2.attach(new MyResizer());
 
 		room2.setSpeed(30);
 		GTObject testInstance = new TestObject(50, 50);
@@ -50,7 +53,7 @@ public class TestMain {
 		testInstance.setSprite(mainSpr);
 		testInstance.hspeed = 1;
 		testInstance.gravity = 0.2;
-		testInstance.attachListener(new MyOutsideRoom());
+		testInstance.attach(new MyOutsideRoom());
 		room2.addObject(testInstance);
 
 		game.addRoom(room1);

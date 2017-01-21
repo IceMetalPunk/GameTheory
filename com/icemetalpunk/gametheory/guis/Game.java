@@ -8,42 +8,55 @@ import java.util.List;
 
 import javax.swing.JFrame;
 
+import com.icemetalpunk.gametheory.events.GTEvent;
 import com.icemetalpunk.gametheory.events.GTEventHandler;
-import com.icemetalpunk.gametheory.events.GTKeyEvent;
-import com.icemetalpunk.gametheory.events.GTMouseEvent;
-import com.icemetalpunk.gametheory.events.GTRoomEvent;
-import com.icemetalpunk.gametheory.events.GTStepEvent;
+import com.icemetalpunk.gametheory.events.GTEventProcessor;
 
-public class Game extends JFrame implements GTEventHandler {
-
-	private static final long serialVersionUID = 41L;
+public class Game extends GTEventHandler {
 
 	private int currentRoom;
 	private Room thisRoom;
 	private final List<Room> roomList = new ArrayList<Room>();
 	private final Container oContentPane;
+	private final JFrame mainFrame = new JFrame();
+
+	@SuppressWarnings("unchecked")
+	public JFrame getFrame() {
+		return this.mainFrame;
+	}
 
 	public Game() {
 		this.currentRoom = -1;
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.oContentPane = this.getContentPane();
-		this.addComponentListener(new ComponentAdapter() {
+		this.mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.oContentPane = this.mainFrame.getContentPane();
+		this.mainFrame.addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent e) {
-				Game source = (Game) e.getSource();
-				source.getContentPane().setSize(source.getSize());
+				Game source = Game.this;
+				JFrame frame = (JFrame) source.getFrame();
+				frame.getContentPane().setSize(frame.getSize());
 				source.triggerResize();
 			}
 		});
 	}
 
+	@Override
+	public void attach(GTEvent event) {
+		event.attachTo(new GTEventProcessor(), this);
+	}
+
+	@Override
+	public void detach(GTEvent event) {
+		event.detachFrom(new GTEventProcessor(), this);
+	}
+
 	public void triggerResize() {
 		if (this.thisRoom != null) {
-			this.thisRoom.triggerResize(this.getWidth(), this.getHeight());
+			this.thisRoom.triggerResize(this.mainFrame.getWidth(), this.mainFrame.getHeight());
 		}
 	}
 
 	public void resetBackground() {
-		this.setContentPane(this.oContentPane);
+		this.mainFrame.setContentPane(this.oContentPane);
 	}
 
 	public void run() {
@@ -115,40 +128,8 @@ public class Game extends JFrame implements GTEventHandler {
 		return this.roomList.indexOf(rm);
 	}
 
-	// Attaching event listeners
-
-	public void attachListener(GTKeyEvent event) {
-		this.addKeyListener(event);
-	}
-
-	public void attachListener(GTMouseEvent event) {
-		this.addMouseListener(event);
-	}
-
 	@Override
-	public void detachListener(GTKeyEvent event) {
-		this.removeKeyListener(event);
+	public Game getWindow() {
+		return this;
 	}
-
-	@Override
-	public void detachListener(GTMouseEvent event) {
-		this.removeMouseListener(event);
-	}
-
-	@Override
-	public void attachListener(GTStepEvent event) {
-	}
-
-	@Override
-	public void detachListener(GTStepEvent event) {
-	}
-
-	@Override
-	public void attachListener(GTRoomEvent event) {
-	}
-
-	@Override
-	public void detachListener(GTRoomEvent event) {
-	}
-
 }

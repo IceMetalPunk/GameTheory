@@ -3,7 +3,7 @@ package com.icemetalpunk.gametheory.events;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-public abstract class GTKeyEvent extends GTGameEvent implements KeyListener {
+public abstract class GTKeyEvent extends GTEvent implements KeyListener {
 
 	@Override
 	public abstract void keyPressed(KeyEvent event);
@@ -13,15 +13,15 @@ public abstract class GTKeyEvent extends GTGameEvent implements KeyListener {
 
 	@Override
 	public abstract void keyTyped(KeyEvent event);
-
+	
 	@Override
-	public void attachTo(GTEventHandler comp) {
-		comp.attachListener(this);
+	public void attachTo(GTEventProcessor processor, GTEventHandler source) {
+		processor.attach(this, source);
 	}
 
 	@Override
-	public void detachFrom(GTEventHandler comp) {
-		comp.detachListener(this);
+	public void detachFrom(GTEventProcessor processor, GTEventHandler source) {
+		processor.detach(this, source);
 	}
 
 }

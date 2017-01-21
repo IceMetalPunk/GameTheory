@@ -1,24 +1,30 @@
 package com.icemetalpunk.gametheory.objects;
 
+import java.awt.Component;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.swing.JLabel;
 
+import com.icemetalpunk.gametheory.events.GTEvent;
+import com.icemetalpunk.gametheory.events.GTEventHandler;
+import com.icemetalpunk.gametheory.events.GTEventProcessor;
 import com.icemetalpunk.gametheory.events.GTStepHandler;
-import com.icemetalpunk.gametheory.events.objectevents.GTObjectEventHandler;
-import com.icemetalpunk.gametheory.events.objectevents.GTOutsideRoomEvent;
+import com.icemetalpunk.gametheory.events.objectevents.GTObjectEvent;
 import com.icemetalpunk.gametheory.guis.Game;
+import com.icemetalpunk.gametheory.guis.Room;
 import com.icemetalpunk.gametheory.sprites.GTSprite;
 
-public abstract class GTObject implements GTStepHandler, GTObjectEventHandler {
+public abstract class GTObject extends GTEventHandler implements GTStepHandler {
 	private static AtomicLong idCounter = new AtomicLong();
 	public double x, y, hspeed, vspeed, gravity;
 	public final long id;
 	private GTSprite sprite;
 	private final JLabel spriteLabel;
 	public boolean visible;
-	private GTOutsideRoomEvent outsideRoomEvent;
-	public Game window;
+	public final List<GTObjectEvent.OutsideRoom> outsideRoomEvents = new ArrayList<GTObjectEvent.OutsideRoom>();
+	public Room room;
 
 	public GTObject(int xpos, int ypos) {
 		this.x = xpos;
@@ -27,7 +33,7 @@ public abstract class GTObject implements GTStepHandler, GTObjectEventHandler {
 		this.vspeed = 0;
 		this.gravity = 0;
 		this.visible = true;
-		this.window = null;
+		this.room = null;
 		this.spriteLabel = new JLabel();
 		this.spriteLabel.setVisible(false);
 		this.id = idCounter.getAndIncrement();
@@ -37,8 +43,18 @@ public abstract class GTObject implements GTStepHandler, GTObjectEventHandler {
 		this(0, 0);
 	}
 
-	public void setWindow(Game w) {
-		this.window = w;
+	@Override
+	public void attach(GTEvent event) {
+		event.attachTo(new GTEventProcessor(), this);
+	}
+
+	@Override
+	public void detach(GTEvent event) {
+		event.detachFrom(new GTEventProcessor(), this);
+	}
+
+	public void setRoom(Room r) {
+		this.room = r;
 	}
 
 	@Override
@@ -61,11 +77,11 @@ public abstract class GTObject implements GTStepHandler, GTObjectEventHandler {
 	}
 
 	public void attachSprite(Game attachTo) {
-		attachTo.add(this.spriteLabel);
+		attachTo.getFrame().add(this.spriteLabel);
 	}
 
 	public void detachSprite(Game attachTo) {
-		attachTo.remove(this.spriteLabel);
+		attachTo.getFrame().remove(this.spriteLabel);
 	}
 
 	public void draw() {
@@ -73,22 +89,38 @@ public abstract class GTObject implements GTStepHandler, GTObjectEventHandler {
 	}
 
 	@Override
-	public void attachListener(GTOutsideRoomEvent event) {
-		this.outsideRoomEvent = event;
-	}
-
-	@Override
 	public void step() {
+
+		// Move
 		x += hspeed;
 		vspeed += gravity;
 		y += vspeed;
 
-		if (this.outsideRoomEvent != null
-				&& (y < 0 || x < 0 || y > this.window.getHeight() || x > this.window.getWidth())) {
-			this.outsideRoomEvent.setState(x < 0, x > this.window.getWidth(), y < 0, y > this.window.getHeight());
-			this.outsideRoomEvent.trigger();
+		// Check for outside room
+		if (this.outsideRoomEvents.size() > 0 && (y < 0 || x < 0 || y > this.getWindow().getFrame().getHeight()
+				|| x > this.getWindow().getFrame().getWidth())) {
+			for (GTObjectEvent.OutsideRoom event : this.outsideRoomEvents) {
+				event.setState(x < 0, x > this.getWindow().getFrame().getWidth(), y < 0,
+						y > this.getWindow().getFrame().getHeight());
+				event.trigger();
+			}
 		}
 
+		// Draw...
 		this.draw();
+	}
+
+	// There's no Swing Component associated with an object here.
+	public <T extends Component> T getFrame() {
+		return null;
+	}
+
+	@Override
+	public Game getWindow() {
+		if (this.room == null) {
+			return null;
+		} else {
+			return this.room.getWindow();
+		}
 	}
 }

@@ -8,17 +8,17 @@ public class GlobalClick extends GTMouseEvent {
 
 	@Override
 	public void mouseClicked(MouseEvent event) {
-		this.window.gotoNextRoom();
+		this.getWindow().gotoNextRoom();
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent event) {
-		TestMain.game.getCurrentRoom().setBackground(TestMain.BG1);
+		this.getWindow().getCurrentRoom().setBackground(TestMain.BG1);
 	}
 
 	@Override
 	public void mouseExited(MouseEvent event) {
-		TestMain.game.getCurrentRoom().setBackground(TestMain.BG2);
+		this.getWindow().getCurrentRoom().setBackground(TestMain.BG2);
 	}
 
 	@Override

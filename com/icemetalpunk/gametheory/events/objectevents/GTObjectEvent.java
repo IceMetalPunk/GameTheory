@@ -1,20 +1,41 @@
 package com.icemetalpunk.gametheory.events.objectevents;
 
-import java.awt.Component;
+import com.icemetalpunk.gametheory.events.GTEvent;
+import com.icemetalpunk.gametheory.events.GTEventHandler;
+import com.icemetalpunk.gametheory.events.GTEventProcessor;
 
-import com.icemetalpunk.gametheory.guis.Game;
+public abstract class GTObjectEvent extends GTEvent {
 
-public abstract class GTObjectEvent {
-	protected Game window;
+	public abstract void trigger();
 
-	public GTObjectEvent() {
+	@Override
+	public void attachTo(GTEventProcessor processor, GTEventHandler source) {
+		processor.attach(this, source);
 	}
 
-	public GTObjectEvent(Component s, Game w) {
-		this.window = w;
+	@Override
+	public void detachFrom(GTEventProcessor processor, GTEventHandler source) {
+		processor.detach(this, source);
 	}
 
-	public void setWindow(Game w) {
-		this.window = w;
+	public static abstract class OutsideRoom extends GTObjectEvent {
+		protected boolean outLeft = false, outRight = false, outTop = false, outBottom = false;
+
+		@Override
+		public void attachTo(GTEventProcessor processor, GTEventHandler source) {
+			processor.attach(this, source);
+		}
+
+		@Override
+		public void detachFrom(GTEventProcessor processor, GTEventHandler source) {
+			processor.detach(this, source);
+		}
+
+		public void setState(boolean left, boolean right, boolean top, boolean bottom) {
+			this.outLeft = left;
+			this.outRight = right;
+			this.outTop = top;
+			this.outBottom = bottom;
+		}
 	}
 }

@@ -11,6 +11,6 @@ public class TestObject extends GTObject {
 	@Override
 	public void step() {
 		super.step();
-		//System.out.println("(" + this.x + ", " + this.y + ")");
+		// System.out.println("(" + this.x + ", " + this.y + ")");
 	}
 }

@@ -3,7 +3,7 @@ package com.icemetalpunk.gametheory.events;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
-public abstract class GTMouseEvent extends GTGameEvent implements MouseListener {
+public abstract class GTMouseEvent extends GTEvent implements MouseListener {
 
 	@Override
 	public abstract void mouseClicked(MouseEvent event);
@@ -21,12 +21,12 @@ public abstract class GTMouseEvent extends GTGameEvent implements MouseListener 
 	public abstract void mouseReleased(MouseEvent event);
 
 	@Override
-	public void attachTo(GTEventHandler comp) {
-		comp.attachListener(this);
+	public void attachTo(GTEventProcessor processor, GTEventHandler source) {
+		processor.attach(this, source);
 	}
 
 	@Override
-	public void detachFrom(GTEventHandler comp) {
-		comp.detachListener(this);
+	public void detachFrom(GTEventProcessor processor, GTEventHandler source) {
+		processor.detach(this, source);
 	}
 }

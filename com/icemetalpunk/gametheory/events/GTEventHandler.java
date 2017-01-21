@@ -1,20 +1,25 @@
 package com.icemetalpunk.gametheory.events;
 
-public interface GTEventHandler {
-	public void attachListener(GTKeyEvent event);
+import java.awt.Component;
+import java.util.ArrayList;
+import java.util.List;
 
-	public void attachListener(GTMouseEvent event);
+import com.icemetalpunk.gametheory.guis.Game;
 
-	public void attachListener(GTStepEvent event);
+public abstract class GTEventHandler {
+	public abstract <T extends Component> T getFrame();
 
-	public void attachListener(GTRoomEvent event);
+	public final List<GTStepEvent> stepEvents = new ArrayList<GTStepEvent>();
+	public final List<GTResizeEvent> resizeEvents = new ArrayList<GTResizeEvent>();
 
-	public void detachListener(GTRoomEvent event);
+	public void attach(GTEvent event) {
+		event.attachTo(new GTEventProcessor(), this);
+	}
 
-	public void detachListener(GTStepEvent event);
+	public void detach(GTEvent event) {
+		event.detachFrom(new GTEventProcessor(), this);
+	}
 
-	public void detachListener(GTKeyEvent event);
-
-	public void detachListener(GTMouseEvent event);
+	public abstract Game getWindow();
 
 }

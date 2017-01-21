@@ -1,34 +1,33 @@
 package com.icemetalpunk.gametheory.guis;
 
-import java.awt.Component;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.icemetalpunk.gametheory.events.GTGameEvent;
+import javax.swing.JFrame;
+
+import com.icemetalpunk.gametheory.events.GTEvent;
+import com.icemetalpunk.gametheory.events.GTEventHandler;
+import com.icemetalpunk.gametheory.events.GTEventProcessor;
 import com.icemetalpunk.gametheory.events.GTResizeEvent;
 import com.icemetalpunk.gametheory.events.GTRoomEvent;
 import com.icemetalpunk.gametheory.events.GTStepEvent;
 import com.icemetalpunk.gametheory.events.GTStepHandler;
 import com.icemetalpunk.gametheory.objects.GTObject;
 
-public class Room extends Component implements GTStepHandler {
-
-	private static final long serialVersionUID = 1486745284368007992L;
+public class Room extends GTEventHandler implements GTStepHandler {
 
 	private int width, height, speed;
 	private Game game;
 	private String title;
 	public static int DEFAULT_ROOM_WIDTH = 640, DEFAULT_ROOM_HEIGHT = 480, DEFAULT_ROOM_SPEED = 30;
-	List<GTGameEvent> events = new ArrayList<GTGameEvent>();
-	List<GTObject> objects = new ArrayList<GTObject>();
-	private GTStepEvent stepEvent = null;
-	private GTRoomEvent.RoomStart startEvent = null;
-	private GTRoomEvent.RoomEnd endEvent = null;
+	public List<GTEvent> events = new ArrayList<GTEvent>();
+	public List<GTObject> objects = new ArrayList<GTObject>();
+	public final List<GTRoomEvent.RoomStart> startEvents = new ArrayList<GTRoomEvent.RoomStart>();
+	public final List<GTRoomEvent.RoomEnd> endEvents = new ArrayList<GTRoomEvent.RoomEnd>();
 	private GTBackground background = null;
-	private GTResizeEvent resizeEvent = null;
 
 	public Room(int w, int h, String t, int s, Game g) {
 		this.width = w;
@@ -70,6 +69,16 @@ public class Room extends Component implements GTStepHandler {
 		this(DEFAULT_ROOM_WIDTH, DEFAULT_ROOM_HEIGHT, "", DEFAULT_ROOM_SPEED, null);
 	}
 
+	@Override
+	public void attach(GTEvent event) {
+		event.attachTo(new GTEventProcessor(), this);
+	}
+
+	@Override
+	public void detach(GTEvent event) {
+		event.detachFrom(new GTEventProcessor(), this);
+	}
+
 	// Backgrounds
 	public void setBackground(String img) throws IOException {
 		if (this.background == null) {
@@ -106,8 +115,8 @@ public class Room extends Component implements GTStepHandler {
 	private void refreshBackground() {
 		if (this.game != null) {
 			if (this.background != null) {
-				this.background.setSize(this.game.getSize());
-				this.game.setContentPane(this.background);
+				this.background.setSize(this.game.getFrame().getSize());
+				this.game.getFrame().setContentPane(this.background);
 			} else {
 				this.game.resetBackground();
 			}
@@ -129,8 +138,9 @@ public class Room extends Component implements GTStepHandler {
 			throw new NullPointerException();
 		} else {
 
-			for (GTGameEvent event : this.events) {
-				event.attachTo(this.game);
+			GTEventProcessor processor = new GTEventProcessor();
+			for (GTEvent event : this.events) {
+				event.attachTo(processor, this.game);
 			}
 
 			for (GTObject obj : this.objects) {
@@ -138,22 +148,22 @@ public class Room extends Component implements GTStepHandler {
 			}
 
 			if (this.background != null) {
-				this.game.setContentPane(this.background);
+				this.game.getFrame().setContentPane(this.background);
 			}
-			this.game.setSize(this.width, this.height);
-			this.game.setTitle(this.title);
-			this.game.setVisible(true);
+			this.game.getFrame().setSize(this.width, this.height);
+			this.game.getFrame().setTitle(this.title);
+			this.game.getFrame().setVisible(true);
 
-			if (this.startEvent != null) {
-				this.startEvent.trigger();
+			for (GTRoomEvent.RoomStart event : this.startEvents) {
+				event.trigger();
 			}
 
 		}
 	}
 
 	public void triggerResize(int w, int h) {
-		if (this.resizeEvent != null) {
-			this.resizeEvent.trigger(w, h);
+		for (GTResizeEvent event : this.resizeEvents) {
+			event.trigger(w, h);
 		}
 	}
 
@@ -163,8 +173,8 @@ public class Room extends Component implements GTStepHandler {
 			throw new NullPointerException();
 		} else {
 
-			if (this.endEvent != null) {
-				this.endEvent.trigger();
+			for (GTRoomEvent.RoomEnd event : this.endEvents) {
+				event.trigger();
 			}
 
 			this.game.resetBackground();
@@ -172,52 +182,27 @@ public class Room extends Component implements GTStepHandler {
 				obj.detachSprite(this.game);
 			}
 
-			for (GTGameEvent event : this.events) {
-				event.detachFrom(this.game);
+			GTEventProcessor processor = new GTEventProcessor();
+			for (GTEvent event : this.events) {
+				event.detachFrom(processor, this.game);
 			}
 		}
 	}
 
 	// Event handlers
-	public void attachListener(GTGameEvent event) {
+	public void attachListener(GTEvent event) {
 		event.setSource(this);
-		event.setWindow(this.game);
 		this.events.add(event);
-	}
-
-	public void attachListener(GTStepEvent event) {
-		event.setSource(this);
-		event.setWindow(this.game);
-		this.stepEvent = event;
-	}
-
-	public void attachListener(GTRoomEvent.RoomStart event) {
-		event.setSource(this);
-		event.setWindow(this.game);
-		this.startEvent = event;
-	}
-
-	public void attachListener(GTRoomEvent.RoomEnd event) {
-		event.setSource(this);
-		event.setWindow(this.game);
-		this.endEvent = event;
-	}
-
-	public void attachListener(GTResizeEvent event) {
-		event.setSource(this);
-		event.setWindow(this.game);
-		this.resizeEvent = event;
 	}
 
 	public void setGame(Game g) {
 		this.game = g;
 
-		for (GTGameEvent event : this.events) {
+		for (GTEvent event : this.events) {
 			event.setSource(this);
-			event.setWindow(this.game);
 		}
 		for (GTObject obj : this.objects) {
-			obj.setWindow(this.game);
+			obj.setRoom(this);
 		}
 
 	}
@@ -248,7 +233,7 @@ public class Room extends Component implements GTStepHandler {
 	}
 
 	public void addObject(GTObject obj) {
-		obj.setWindow(this.game);
+		obj.setRoom(this);
 		this.objects.add(obj);
 	}
 
@@ -263,11 +248,30 @@ public class Room extends Component implements GTStepHandler {
 
 	@Override
 	public void step() {
-		if (this.stepEvent != null) {
-			this.stepEvent.step();
+		for (GTStepEvent event : this.stepEvents) {
+			event.step();
 		}
 		for (GTObject object : this.objects) {
 			object.step();
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public JFrame getFrame() {
+		if (this.game == null) {
+			return null;
+		} else {
+			return this.game.getFrame();
+		}
+	}
+
+	@Override
+	public Game getWindow() {
+		if (this.game == null) {
+			return null;
+		} else {
+			return this.game.getWindow();
 		}
 	}
 }
